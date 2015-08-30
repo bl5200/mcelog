@@ -1,0 +1,79 @@
+#!/bin/sh
+PATH=$PATH:$(pwd)/../../../mce-inject
+ 
+page_type="slab buddy mmap anonymous nopage huge"
+ 
+function get_free_page() 
+{
+        local rand=0
+        cnt=`page-types -Nl -b $1 | tee page_$1 | wc -l`
+        if [ $cnt -gt 1 ]; then
+                rand=$(expr $RANDOM % $cnt + 1)
+                if [ ${rand} -eq 1 ]; then
+			# skip the title line of output
+                        ((rand++))
+                fi
+                page=`awk -v line=${rand} 'NR == line {print $1}' page_$1`
+                echo 0x${page}
+        else
+                echo 0
+        fi
+        rm -f page_$1
+}
+ 
+if [ "$1" = "" ]; then
+	echo "usage $0 conf_file"
+	exit 1
+fi
+
+if [ ! -f $1 ]; then
+	echo "configure file not exists: $1"
+	exit 1
+fi
+
+which page-types > /dev/null 2>&1
+if [ $? -ne 0 ];then
+        echo "please install page-types tool first"
+        exit 1
+fi
+
+echo "+++ start the injection for $1 +++"
+
+NUMT="$(awk '/# trigger: / { print $3}' $1)"
+THRESHOLD="$(awk '/memory-ce-threshold = / { print $3}' $1)"
+
+if [ "$NUMT" -eq 0 ]; then
+	echo "No injection will be done!"
+	exit 0
+fi
+
+if [ "$THRESHOLD" -eq 0 ]; then
+	echo "Threshold should not be 0!"
+	exit 1
+fi
+
+trigger_cnt=0
+while [ "$trigger_cnt" -lt "$NUMT" ]; do
+	for i in ${page_type}; do
+		P=$(get_free_page $i)
+		if [ "$P" = "0" ]; then
+			continue
+		fi
+		if [ "$trigger_cnt" -ge "$NUMT" ]; then
+			exit 0;
+		fi
+		inject_cnt=0
+		while [ "$inject_cnt" -lt "$THRESHOLD" ]; do
+			echo "inject for page type $i at physical address ${P}000 [ NO. $inject_cnt ]"
+			../../input/GENPAGE $P | mce-inject
+			inject_cnt=$(($inject_cnt+1))
+		done
+		if [ "$inject_cnt" -eq "$THRESHOLD" ]; then
+			trigger_cnt=$(($trigger_cnt+1))
+		fi
+	done
+	if [ "$trigger_cnt" -eq 0 ]; then
+		echo "None available free pages found!"
+		exit 1
+	fi
+done

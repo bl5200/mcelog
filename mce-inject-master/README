@@ -1,0 +1,45 @@
+mce-inject allows to inject machine check errors on the 
+software level into a running Linux kernel. This is intended for
+validation of the kernel machine check handler.
+
+Syntax:
+
+mce-inject input-file ..
+
+See the manpage for the input language
+
+Some simple tests are in test/*.
+
+Warning: some of them will panic the machine (this is intended)
+
+Requires a Linux 2.6.31+ kernel with CONFIG_X86_MCE_INJECT 
+enabled and the mce-inject module loaded (if not built in)
+
+The official git tree for this project is on
+git://git.kernel.org/pub/scm/utils/cpu/mce/mce-inject.git
+
+A more comprehensive test suite testing much more machine check features
+using this program is available in mce-test
+git://git.kernel.org/pub/scm/utils/cpu/mce/mce-test.git
+
+Authors:
+
+Andi Kleen
+Ying Huang
+
+Copyright 2008 by Intel Corporation
+   mce-inject is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public
+   License as published by the Free Software Foundation; version
+   2.
+
+   mce-inject is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should find a copy of v2 of the GNU General Public License somewhere
+   on your Linux system; if not, write to the Free Software Foundation,
+   Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+

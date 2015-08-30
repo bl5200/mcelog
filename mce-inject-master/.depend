@@ -1,0 +1,4 @@
+mce-inject.o: mce-inject.c mce.h inject.h parser.h util.h
+util.o: util.c util.h
+mce.tab.o: mce.tab.c parser.h mce.h inject.h
+lex.yy.o: lex.yy.c mce.h parser.h mce.tab.h util.h inject.h

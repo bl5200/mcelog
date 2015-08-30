@@ -1,0 +1,330 @@
+.TH MCELOG 8 "Mar 2015" "" "Linux's Administrator's Manual"
+.SH NAME
+mcelog \- Decode kernel machine check log on x86 machines
+.SH SYNOPSIS
+mcelog [options] [device]
+.br
+mcelog [options] \-\-daemon
+.br
+mcelog [options] \-\-client
+.br
+mcelog [options] \-\-ascii
+.br
+.\"mcelog [options] \-\-drop-old-memory
+.\".br
+.\"mcelog [options] \-\-reset-memory locator
+.\".br
+.\"mcelog [options] \-\-dump-memory[=locator]
+.br
+mcelog \-\-version
+.SH DESCRIPTION
+X86 CPUs report errors detected by the CPU as
+.I machine check events (MCEs). 
+These can be data corruption detected in the CPU caches,
+in main memory by an integrated memory controller, data
+transfer errors on the front side bus or CPU interconnect or other internal
+errors. 
+Possible causes can be cosmic radiation, instable power supplies,
+cooling problems, broken hardware, running systems out of specification,
+or bad luck.
+
+Most errors can be corrected by the CPU by internal error correction
+mechanisms. Uncorrected errors cause machine check exceptions which
+may kill processes or panic the machine. A small number of corrected
+errors is usually not a cause for worry, but a large number can indicate
+future failure.
+
+When a corrected or recovered error happens the x86 kernel writes a record describing
+the MCE into a internal ring buffer available through the
+.I /dev/mcelog
+device
+.I mcelog 
+retrieves errors from 
+.I /dev/mcelog, 
+decodes them into a human readable format and prints them
+on the standard output or optionally into the system log. 
+
+Optionally it can also take more options like keeping statistics or
+triggering shell scripts on specific events. By default mcelog
+supports offlining memory pages with persistent corrected errors,
+offlining CPU cores if they developed cache problems,
+and otherwise logging specific events to the system log after
+they crossed a threshold.
+
+The normal operating modi for mcelog are running 
+as a regular cron job (traditional way, deprecated), 
+running as a trigger directly executed by the kernel, 
+or running as a daemon with the
+.I \-\-daemon
+option.
+
+When an uncorrected machine check error happens that the kernel
+cannot recover from then it will usually panic the system.
+In this case when there was a warm reset after the panic
+mcelog should pick up the machine check errors after reboot.
+This is not possible after a cold reset.
+
+In addition mcelog can be used on the command line to decode the kernel
+output for a fatal machine check panic in text format using the
+.I \-\-ascii
+option. This is typically used to decode the panic console output of a fatal
+machine check, if the system was power cycled or mcelog didn't
+run immediately after reboot.
+
+When the panic triggers a kdump kexec crash kernel the crash
+kernel boot up script should log the machine checks to disk, otherwise
+they might be lost.
+
+Note that after mcelog retrieves an error the kernel doesn't 
+store it anymore (different from 
+.I dmesg(1)),
+so the output should be always saved somewhere and mcelog
+not run in uncontrolled ways.
+
+.SH OPTIONS
+When the 
+.B \-\-syslog
+option is specified redirect output to system log. The 
+.B \-\-syslog-error
+option causes the normal machine checks to be logged as 
+.I LOG_ERR
+(implies
+.I \-\-syslog
+). Normally only fatal errors or high level remarks are logged with error level.
+High level one line summaries of specific errors are also logged to the syslog by
+default unless mcelog operates in 
+.I \-\-ascii 
+mode.
+
+When the
+.B \-\-logfile=file
+option is specified append log output to the specified file. With the
+.B \-\-no-syslog
+option mcelog will never log anything to the syslog.
+
+When the
+.B \-\-cpu=cputype
+option is specified set the to be decoded CPU to 
+.I cputype. 
+See 
+.I mcelog \-\-help
+for a list of valid CPUs.
+Note that specifying an incorrect CPU can lead to incorrect decoding output.
+Default is either the CPU of the machine that reported the machine check (needs
+a newer kernel version) or the CPU of the machine mcelog is running on, so normally
+this option doesn't have to be used. Older versions of mcelog had separate
+options for different CPU types. These are still implemented, but deprecated
+and undocumented now.
+
+With the
+.B \-\-dmi
+option mcelog will look up the DIMMs reported in machine
+checks in the 
+.I SMBIOS/DMI
+tables of the BIOS and map the DIMMs to board identifiers.
+This only works when the BIOS reports the identifiers correctly.
+Unfortunately often the information reported
+by the BIOS is either subtly or obviously wrong or useless.
+This option requires that mcelog has read access to /dev/mem
+(normally requires root) and runs on the same machine
+in the same hardware configuration as when the machine check
+event happened.
+
+When 
+.B \-\-ignorenodev
+is specified then mcelog will exit silently when the device
+cannot be opened. This is useful in virtualized environment
+with limited devices.
+
+When 
+.B \-\-filter
+is specified 
+.I mcelog
+will filter out known broken machine check events (default on). When the 
+.B \-\-no-filter
+option is specified mcelog does not filter events.
+
+When 
+.B \-\-raw
+is specified
+.I mcelog
+will not decode, but just dump the mcelog in a raw hex format. This
+can be useful for automatic post processing.
+
+When a device is specified the machine check logs are read from
+device instead of the default
+.I /dev/mcelog.
+
+With the 
+.B \-\-ascii
+option mcelog decodes a fatal machine check panic generated
+by the kernel ("CPU n: Machine Check Exception ...") in ASCII from standard input
+and exits afterwards.
+Note that when the panic comes from a different machine than 
+where mcelog is running on you might need to specify the correct
+cputype on older kernels. On newer kernels which output the 
+.I PROCESSOR
+field this is not needed anymore.
+
+When the 
+.B \-\-file filename
+option is specified 
+.I mcelog \-\-ascii
+will read the ASCII machine check record from input file 
+.I filename
+instead of standard input.
+
+With the
+.B \-\-config-file file
+option mcelog reads the specified config file.
+Default is 
+.I /etc/mcelog/mcelog.conf
+See also 
+.I CONFIG FILE
+below.
+
+With the
+.B \-\-daemon
+option mcelog will run in the background. This gives the fastest reaction
+time and is the recommended operating mode.
+If an output option isn't selected (
+.I \-\-logfile
+or
+.I \-\-syslog
+or
+.I \-\-syslog-error
+), this option implies
+.I \-\-logfile=/var/log/mcelog. 
+Important messages will be logged as one-liner summaries to syslog
+unless 
+.I \-\-no-syslog 
+is given.
+The option 
+.I \-\-foreground
+will prevent mcelog from giving up the terminal in daemon mode. This
+is intended for debugging.
+
+With the 
+.B \-\-client
+option mcelog will query a running daemon for accumulated errors.
+
+With the
+.B \-\-cpumhz=mhz
+option assume the CPU has 
+.I mhz
+frequency for decoding the time of the event using the CPU time stamp
+counter. This also forces decoding. Note this can be unreliable.
+on some systems with CPU frequency scaling or deep C states, where
+the CPU time stamp counter does not increase linearly.
+By default the frequency of the current CPU is used when mcelog
+determines it is safe to use. Newer kernels report
+the time directly in the event and don't need this anymore.
+
+The 
+.B \-\-pidfile file
+option writes the process id of the daemon into file 
+.I file.
+Only valid in daemon mode.
+
+Mcelog will enable extended error reporting from the memory
+controller on processors that support it unless you tell it
+not to with the
+.B \-\-no-imc-log
+option. You might need this option when decoding old logs
+from a system where this mode was not enabled.
+
+.\".B \-\-database filename
+.\"specifies the memory module error database file. Default is
+.\"/var/lib/memory-errors.  It is only used together with DMI decoding.
+.\"
+.\"
+.\".B \-\-error\-trigger=cmd,thresh
+.\"When a memory module accumulates 
+.\".I thresh
+.\"errors in the err database run command 
+.\".I cmd. 
+.\"
+.\".B \-\-drop-old-memory
+.\"Drop old DIMMs in the memory module database that are not plugged in
+.\"anymore.
+.\"
+.\".B \-\-reset\-memory=locator
+.\"When the DIMMs have suitable unique serial numbers mcelog
+.\"will automatically detect changed DIMMs. When the DIMMs don't
+.\"have those the user will have to use this option when changing
+.\"a DIMM to reset the error count in the error database.
+.\".I Locator 
+.\"is the memory slot identifier printed on the motherboard.
+.\"
+.\".B \-\-dump-memory[=locator]
+.\"Dump error database information for memory module located
+.\"at 
+.\".I locator.
+.\"When no locator is specified dump all.
+
+.B \-\-version
+displays the version of mcelog and exits.
+
+.SH CONFIG FILE
+mcelog supports a config file to set defaults. Command line options override
+the config file. By default the config file is read from
+.I /etc/mcelog/mcelog.conf
+unless overridden with the 
+.I --config-file
+option.
+
+The general format is
+.I optionname = value
+White space is not allowed in value currently, except at the end where it is dropped
+Comments start with #.
+
+All command line options that are not commands can be specified in the config file.
+For example t to enable the 
+.I --no-syslog
+option use 
+.I no-syslog = yes   
+(or no to disable).  When the option has a argument
+use
+.I logfile = /tmp/logfile
+
+For more information on the config file please see
+.B mcelog.conf(5).
+
+.SH NOTES
+The kernel prefers old messages over new. If the log buffer overflows
+only old ones will be kept.
+
+The exact output in the log file depends on the CPU, unless the --raw option is used.
+
+mcelog will report serious errors to the syslog during decoding.
+
+.SH SIGNALS
+When 
+.I mcelog
+runs in daemon mode and receives a 
+.I SIGUSR1
+it will close and reopen the log files. This can be used to rotate logs without
+restarting the daemon.
+
+.SH FILES
+/dev/mcelog (char 10, minor 227) 
+
+/etc/mcelog/mcelog.conf
+
+/var/log/mcelog
+
+/var/run/mcelog.pid
+
+.\"/var/lib/memory-errors
+.SH SEE ALSO
+.BR mcelog.conf(5),
+.BR mcelog.triggers(5)
+
+http://www.mcelog.org
+
+AMD x86-64 architecture programmer's manual, Volume 2, System programming
+
+Intel 64 and IA32 Architectures Software Developer's manual, Volume 3, System programming guide
+Chapter 15 and 16.  http://www.intel.com/sdm
+
+Datasheet of your CPU.

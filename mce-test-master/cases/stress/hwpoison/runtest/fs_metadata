@@ -1,0 +1,1 @@
+fs_metadata fs-metadata.sh 6 5 1 60 /root/git/mce-test-master/cases/stress/hwpoison/log/fs_metadata/fs_metadata.result /root/git/mce-test-master/cases/stress/hwpoison/hwpoison/fs_metadata /root/git/mce-test-master/cases/stress/hwpoison/log/fs_metadata/fs_metadata.log

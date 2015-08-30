@@ -1,0 +1,20 @@
+Test Start Time: 2015-07-23.23.27.21
+----------------------------------------------
+testcase                            result
+-------------------                 ----------
+APEI-INJ                            FAIL      
+ERST-INJ                            FAIL      
+PFA                                 FAIL      
+HWPOISON-SOFT                       PASS      
+HWPOISON-HARD                       PASS      
+HWPOISON-HUGEPAGE                   PASS      
+HWPOISON-THP                        PASS      
+STRESS-HWPOISON-SOFT                FAIL      
+STRESS-HWPOISON-HARD                PASS      
+----------------------------------------------
+Test End Time: 2015-07-23.23.33.10
+Total Tests: 9
+Total Passes: 5
+Total Failures: 4
+Kernel Version: 2.6.32-431.el6.x86_64
+Machine Architecture: x86_64

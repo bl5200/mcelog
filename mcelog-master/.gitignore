@@ -1,0 +1,10 @@
+*.o
+*~
+mcelog
+dbquery
+*.orig
+*.rej
+.gdb_history
+.depend
+tsc
+core

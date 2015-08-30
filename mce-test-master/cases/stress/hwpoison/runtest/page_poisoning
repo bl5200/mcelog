@@ -1,0 +1,1 @@
+page_poisoning page-poisoning -l /root/git/mce-test-master/cases/stress/hwpoison/log/page_poisoning/page_poisoning.log -r /root/git/mce-test-master/cases/stress/hwpoison/log/page_poisoning/page_poisoning.result -t /root/git/mce-test-master/cases/stress/hwpoison/hwpoison/page_poisoning -i 20

@@ -1,0 +1,74 @@
+#!/bin/bash
+# simple test harness for mcelog daemon trigger test cases
+# ./test subdir [debugger]
+# run mcelog test in specific sub directory
+# requires root rights and a built mce-inject in ../../mce-inject or $PATH
+# warning: this kills any other running mcelogs
+
+D=${2:-}
+
+if [ "$1" = "" ] ; then
+	echo "usage $0 testdir"
+	exit 1
+fi
+
+if [ "$(whoami)" != "root" ] ; then
+	echo "Must run as root"
+	exit 1
+fi
+
+[ ! -f /dev/mce-inject ] && modprobe mce-inject
+
+echo "++++++++++++ running $1 test +++++++++++++++++++"
+
+# disable trigger
+echo -n "" > /sys/devices/system/machinecheck/machinecheck0/trigger
+killall mcelog || true
+
+#killwatchdog() { 
+#	kill %1 || true
+#}
+#
+#watchdog() { 
+#	sleep 10
+#	echo timeout waiting for mcelog
+#	killall mcelog
+#} 
+
+cd $1
+
+#trap killwatchdog 0
+#watchdog & 
+rm -f *.log
+rm -f results
+for conf in `ls *.conf`
+do
+	log=`echo $conf | sed "s/conf/log/g"`
+	./inject $conf
+	$D ../../mcelog --foreground --daemon --debug-numerrors --config $conf --logfile $log >> result
+
+	# let triggers finish
+	sleep 1
+
+	NUMT="$(awk '/# trigger: / { print $3 }' $conf)"
+	NUMC="$(grep -c 'Running trigger' $log || true)"
+
+	if [ "$NUMT" != 0 ] ; then
+		if [ "$NUMC" = 0 ] ; then
+			echo "$conf: no triggers at all" >> results
+		fi
+	fi
+
+	if [ "$NUMT" != "" ] ; then
+		if [ "$NUMC" != "$NUMT" ] ; then
+			echo "$conf: triggers did not trigger as expected: $NUMT != $NUMC" >> results
+		else
+			echo "$conf: triggers trigger as expected" >> results
+		fi
+	else
+		echo "$conf: did not declare number of triggers" >> results
+	fi
+done
+#trap "" 0 
+#killwatchdog 
+

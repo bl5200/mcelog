@@ -1,0 +1,110 @@
+<newer changes first>
+
+Changes file is obsolete.
+Please see git log on https://git.kernel.org/cgit/utils/cpu/mce/mcelog.git/
+for newer changes.
+
+Add Linux Kongress 2010 paper
+Add Sandy Bridge Support
+Write pid file by default in daemon mode
+Reopen log files on SIGUSR1 in daemon mode
+Default --daemon mode to logging to /var/log/mcelog
+Add Core i3/5 and more Westmere support
+Add Xeon75xx support
+Add Intel architectural mca fallback for new family 6 Intel CPUs
+Add --pidfile option to write daemon pid into file.
+Enable DIMM, socket, cache tracking and per page tracking by default
+Support changing mcelog daemon to other user
+	Disabled by default because this breaks the advanced triggers
+	which need root rights.
+Allow to disable memory error logging
+Add per socket memory accounting/trigger support
+Add per page memory error accounting and predictive page offlining
+	Support for accounting errors per memory page and offlining
+	pages and executing shell script triggers when error thresholds
+	are exceeded.
+	Offlining requires a new kernel that supports page offlining.
+	Works with specific Intel systems with integrated memory controller
+Add cache error ``yellow bit trigger'' support
+	An cache error threshold indication on Intel CPUs can
+	execute a special trigger program to offline affected CPUs.
+Add in memory dimm database in daemon mode
+	Errors are accounted per DIMM and can execute shell scripts when
+	error thresholds are exceeded.
+	This can be all configured using the configuration file.
+	Add mcelog --client to query a running mcelog daemon for errors
+	Works only on specific Intel systems for now with integrated 
+	memory controllers that report DIMM errors.
+Keep stdout open in daemon mode when no syslog
+Add --foreground option
+Avoid %a scanf extension that broke old glibc version
+Fixes to Tulsa and Dunngton decoding (Youkang Song)
+Fixes to Nehalem decoding and (Ted Barragy, Hidetoshi Seto)
+Fix parallel logging in daemon mode
+Fixes to the manpage (Thomas Renninger)
+More consistent number printing (Huang Ying)
+mcelog builds now with more gcc warning options enabled
+Improved man page; now actually describing what a machine check is
+Fix and finally document TSC decoding (still doesn't work everywhere and is obsolete now)
+Add support for --ascii --file option to specify input file
+Add support for /etc/mcelog.conf config file. This can set all options on the command line
+	and some more.
+Add new --cpu=cputype option and deprecate old k8/core2/generic/intel-cpu options
+Use official Nehalem names
+Support re-parsing mcelog output with --ascii
+Add Intel Tulsa (Xeon 71xx) decoding support
+Add Dunnington (Xeon 7400) decoding support
+Add Nehalem decoding support
+Add --no-syslog option
+Various bug fixes
+Add --logfile option
+Implement daemon mode
+Various bug fixes to the decoder
+Add --intel-family=... argument
+Better decoding of core2 events and explicit decoding of pre Core P6 cores
+Add decoding of broadcast timeouts
+Add --version argument
+Fix parsing of multiple fields on a line in --ascii 
+Add --raw mode for easier machine decoding (Ying Huang)
+Skip printk timestamp headers in --ascii (Ying Huang)
+Support more than 255 CPUs (requires updated kernel)
+Update for upcoming kernel interface "struct mce" extensions
+Support AMD Fam10h/11h CPUs (Joachim Deguara)
+Add switch to use LOG_ERR for syslog messages
+Various misc. cleanups
+mcelog now logs summaries of some serious events into syslog by default
+Fix syslog multiline logging
+Separate decoding output and error messages
+Automatic dependency generation in Makefile
+Many cleanups in DMI decoding
+Add DIMM database and error triggers
+Automatic sanity check for DMI information and enable by default
+Add support for decoding Intel Core2 machine checks
+Simple decoding of the TSC value into uptime for Intel CPUs
+Add the MCE design paper.
+Decode Intel thermal events properly
+Add some "RAMs" to K8 ECC strings in futile hope that users will get 
+	the hint
+Allow modifier command line options after --ascii
+Don't print decoded address twice for --ascii
+Fix SMBIOS anchor scan to work on more machines and don't crash when 
+	no anchor found.
+Fix --ascii reparsing of mcelog output.
+Add --filter and filter out known broken K8 GART errors
+Add --ignorenodev argument and use in cron script (avoids cron errors
+in Xen guest kernels) 
+Add new --dmi argument to look up machine check addresses in SMBIOS
+(warning unreliable due to wide spread bios bugs) 
+Fix argument decoding (support --, allow arguments in any order)
+Clarify --ascii in the manpage
+Support for AMD K8 Revision F machine check DRAM error thresholding 
+	from Jacob Shin <jacob.shin@amd.com>
+Add P4 decoder contributed by "Guo, Racing" <racing.guo@intel.com> for
+	Intel P4 and Xeon.
+Add K8 decoder from 2.4 kernel code to decode Opteron/Athlon64 logs.
+	(code mostly from Eric Morton and Andi Kleen)  
+Add --ascii function to decode fatal kernel output.
+Improve manpage
+Fix 32bit bugs
+Fix uninitialized variable in check_cpu
+Minor cleanups

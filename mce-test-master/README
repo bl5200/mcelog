@@ -1,0 +1,93 @@
+MCE test suite
+---------------
+
+The MCE test suite is a collection of tools and test scripts for
+testing the Linux RAS related features, including CPU/Memory error
+containment and recovery, ACPI/APEI support etc.
+
+For some more details on machine checks see http://www.mcelog.org
+
+The goal is as follows:
+1. cover most Linux kernel MCE processing code paths and features
+2. cover functional test cases for all RAS related features
+3. provide stress test cases for some RAS features, especially for
+   memory part
+
+In the Package
+--------------
+
+Here is a short description of what is included in the package
+
+README
+	This document
+
+COPYING
+	GNU General Public License
+
+Makefile
+	Top level make file for MCE test suite
+
+bin/
+	Some tools used by test drivers or test cases will be
+	installed into this directory.
+
+cases/*
+	Contains all test cases, which may be organized in
+	sub-directories, the interface of a class of test cases is a
+	shell script under cases/, such as:
+	   -- cases/soft-inj/panic/cases.sh
+		is for test cases triggered by soft-inject and may cause system 
+		panic during testing.
+	   -- cases/apei-inj/ucr/cases.sh  
+		is for test cases triggered by apei-inject.
+
+doc/*
+	Documentation for MCE test suites include howto and
+	descriptions of every test case.
+
+lib/*
+	Contains some shell scripts, in which some common shell
+	functions and variable definitions are defined to be used by
+	multiple test drivers or test cases.
+
+tools/*
+	Some tools used by MCE test suites.
+
+work/
+	During test, some temporary file will be put in work directory.
+
+groups/
+	Where all scenarios files such as coverage/function/stress are placed
+
+results/
+	When test is done, the test log will be placed in this directory.
+	Some test results such as coverage test result will be
+	placed in sub-directory under results directory.
+
+summary
+	When test is done, a summary file in *date* format is placed here.
+
+Test Instruction
+----------------
+
+Please refer to corresponding section in doc/howto.txt.
+
+Very quick way to test this:
+	1. be root
+	2. make sure you have a kernel with CONFIG_X86_MCE_INJECT
+	and CONFIG_HWPOISON_INJECT and soft-offlining support
+	3. run "mcemenu"
+
+Futher Information
+------------------
+
+For futher information about MCE test suite, please refer to documents
+in doc sub-directory.
+
+doc/howto.txt:		a more detailed HOWTO document
+
+doc/stress-howto.txt:	Detailed HOWTO document for MCE stress test suite
+
+doc/cases/*.txt:	Description of every test case, including test
+			objective, code patch tested, reference and
+			expected results

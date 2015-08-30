@@ -1,0 +1,4 @@
+# hwpoison.sh -T -C 1 -t 60 -S
+[info] !!! Linux HWPOISON stress testing starts NOW !!!
+[info] !!! test will run about 60 seconds !!!
+setup test environment	 [start]

@@ -1,0 +1,11 @@
+Test Start Time: 2015-07-23.22.17.18
+----------------------------------------------
+testcase                            result
+-------------------                 ----------
+APEI-INJ                            FAIL      
+ERST-INJ                            FAIL      
+PFA                                 FAIL      
+HWPOISON-SOFT                       PASS      
+HWPOISON-HARD                       PASS      
+HWPOISON-HUGEPAGE                   PASS      
+HWPOISON-THP                        PASS      
